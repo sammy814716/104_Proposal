@@ -1,0 +1,1693 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>104 職涯探索首頁 - 手機版 Prototype</title>
+<style>
+  :root {
+    --orange: #FF6B19;
+    --orange-light: #FFF1E6;
+    --blue: #1A64C4;
+    --blue-light: #EAF2FD;
+    --ink: #222222;
+    --sub: #6B6B6B;
+    --line: #E9E9E9;
+    --bg: #F5F5F3;
+    --card: #FFFFFF;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "PingFang TC", "Microsoft JhengHei", -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+  }
+  .frame {
+    max-width: 414px;
+    margin: 0 auto;
+    background: var(--bg);
+    min-height: 100vh;
+    padding-bottom: 24px;
+    position: relative;
+  }
+
+  header.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar .logo { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 18px; }
+  .topbar .logo .n104 { color: var(--orange); }
+  .topbar .icons { display: flex; align-items: center; gap: 16px; font-size: 18px; color: #444; }
+  .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--orange-light); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+
+  section { padding: 18px 16px 6px; }
+  .section-title { font-size: 16px; font-weight: 700; margin: 0 0 10px; display: flex; align-items: center; gap: 6px; }
+  .section-title .bar { width: 4px; height: 16px; background: var(--orange); border-radius: 2px; display: inline-block; }
+  .section-sub { font-size: 12.5px; color: var(--sub); margin: -6px 0 12px; }
+  .order-toggle-btn { border: none; background: none; font-size: 12px; font-weight: 700; color: var(--blue); cursor: pointer; font-family: inherit; padding: 4px 0; }
+  .order-row {
+    display: flex; align-items: center; gap: 10px; padding: 12px 12px;
+    border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; background: #fff;
+  }
+  .order-row.dragging { opacity: .55; border-color: var(--orange); }
+  .order-drag-handle { font-size: 16px; color: var(--sub); cursor: grab; touch-action: none; user-select: none; }
+  .order-row-label { flex: 1; font-size: 14px; font-weight: 700; }
+  .order-row.hidden-section { background: #FAFAFA; }
+  .order-row.hidden-section .order-row-label { color: var(--sub); }
+  .order-visibility-btn { flex: 0 0 auto; border: none; border-radius: 8px; padding: 6px 12px; font-size: 11.5px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
+  .order-visibility-btn.on { background: var(--blue-light); color: var(--blue); }
+  .order-visibility-btn.off { background: #F0F0EE; color: var(--sub); }
+
+  /* 01 需求選擇 */
+  .need-row { display: flex; flex-direction: column; gap: 10px; }
+  .need-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    background: var(--card);
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  .need-card .icon-circle {
+    flex: 0 0 auto; width: 40px; height: 40px; border-radius: 50%;
+    background: var(--orange-light); display: flex; align-items: center; justify-content: center; font-size: 19px;
+  }
+  .need-card .need-text { flex: 1; min-width: 0; }
+  .need-card .title { font-size: 14.5px; font-weight: 700; margin-bottom: 2px; }
+  .need-card .desc { font-size: 11.5px; color: var(--sub); line-height: 1.4; }
+  .need-card .radio {
+    flex: 0 0 auto; width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--line); position: relative;
+  }
+  .need-card.active { border-color: var(--orange); background: var(--orange-light); }
+  .need-card.active .title { color: var(--orange); }
+  .need-card.active .radio { border-color: var(--orange); background: var(--orange); }
+  .need-card.active .radio::after {
+    content: ""; position: absolute; inset: 4px; background: #fff; border-radius: 50%;
+  }
+  .need-hint { font-size: 12px; color: var(--sub); margin-top: 8px; }
+  .need-hint button { border: none; background: none; color: var(--blue); font-size: 12px; cursor: pointer; padding: 0; text-decoration: underline; }
+  .reset-btn { border: none; background: none; font: inherit; text-align: left; width: 100%; color: inherit; }
+
+  .need-carousel-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+  .need-carousel-card {
+    flex: 0 0 auto; width: 132px; position: relative;
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+    background: var(--card); border: 1.5px solid var(--line); border-radius: 14px;
+    padding: 16px 10px 14px; cursor: pointer; transition: border-color .15s, background .15s;
+  }
+  .need-carousel-card .icon-circle { margin-bottom: 8px; }
+  .need-carousel-card .title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .need-carousel-card .desc { font-size: 10.5px; color: var(--sub); line-height: 1.4; }
+  .need-carousel-card.active { border-color: var(--orange); background: var(--orange-light); }
+  .need-carousel-card.active .title { color: var(--orange); }
+  .need-check {
+    position: absolute; top: 8px; right: 8px; width: 18px; height: 18px; background: var(--orange);
+    color: #fff; border-radius: 50%; font-size: 10.5px; display: flex; align-items: center; justify-content: center;
+  }
+
+  .personalize-banner {
+    margin: 0 16px 14px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #E9E9E6;
+    color: var(--sub);
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .personalize-banner b { color: var(--orange); font-weight: 700; }
+  .personalize-main { font-size: 12.5px; color: var(--ink); }
+  .personalize-detail { display: flex; flex-direction: column; gap: 3px; padding-top: 4px; border-top: 1px dashed #D8D8D4; }
+  .personalize-item { font-size: 11px; color: var(--sub); line-height: 1.5; }
+
+
+  /* 02 個人化工具 */
+  .field-block { margin-bottom: 12px; }
+  .field-label { font-size: 12px; color: var(--sub); margin-bottom: 6px; display: block; }
+  .native-select {
+    width: 100%;
+    font-size: 14.5px;
+    font-weight: 700;
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    color: var(--ink);
+    background: #fff url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%236B6B6B"><path d="M7 10l5 5 5-5z"/></svg>') no-repeat right 10px center;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .native-select.target { border-color: var(--orange); color: var(--orange); background-color: var(--orange-light); }
+  .placeholder-note {
+    display: flex; align-items: center; gap: 8px;
+    background: #FAFAFA; border: 1px dashed var(--line); border-radius: 10px;
+    padding: 12px; font-size: 12.5px; color: var(--sub); margin-top: 4px;
+  }
+  .personality-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: linear-gradient(90deg,#FFF1E6,#FFE3CC);
+    color: var(--orange); font-weight: 700; font-size: 12.5px;
+    padding: 8px 12px; border-radius: 10px; margin-bottom: 12px;
+  }
+  .test-gate-text { font-size: 12.5px; color: var(--sub); line-height: 1.6; margin-bottom: 14px; }
+  .test-skip-link {
+    display: block; text-align: center; font-size: 12.5px; color: var(--sub);
+    text-decoration: underline; margin-top: 10px; cursor: pointer; background: none; border: none; width: 100%; font-family: inherit;
+  }
+  .nudge-banner {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    background: var(--blue-light); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px;
+  }
+  .nudge-banner span { font-size: 12px; color: var(--blue); line-height: 1.5; }
+  .nudge-banner button {
+    flex: 0 0 auto; background: var(--blue); color: #fff; border: none; border-radius: 8px;
+    padding: 7px 12px; font-size: 12px; font-weight: 700; cursor: pointer;
+  }
+  .secondary-block { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--line); }
+  .secondary-heading { font-size: 12.5px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+  .tool-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid var(--line);
+    margin-bottom: 14px;
+  }
+  .tool-card .job-label { font-size: 13px; color: var(--sub); }
+
+  .skill-gap-card { margin-top: 10px; margin-bottom: 4px; background: var(--orange-light); border-radius: 12px; padding: 14px; }
+  .skill-gap-heading { font-size: 13.5px; font-weight: 700; margin-bottom: 10px; }
+  .skill-tab-row { display: flex; gap: 6px; margin-bottom: 10px; }
+  .skill-tab {
+    flex: 1; background: #fff; border: 1px solid var(--line); border-radius: 20px;
+    padding: 6px 4px; font-size: 11px; font-weight: 700; color: var(--sub); cursor: pointer; white-space: nowrap;
+  }
+  .skill-tab.active { background: var(--orange); border-color: var(--orange); color: #fff; }
+  .skill-chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .skill-chip { background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 5px 10px; font-size: 11.5px; color: var(--ink); }
+  .skill-gap-carousel-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 10px; }
+  .skill-gap-card-item {
+    flex: 0 0 auto; width: 160px; display: flex; flex-direction: column; gap: 8px;
+    background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px;
+  }
+  .skill-gap-card-item .skill-name { font-size: 13px; font-weight: 700; color: var(--ink); }
+  .skill-gap-card-item .skill-course { font-size: 11px; color: var(--blue); line-height: 1.4; }
+  .plan-add-btn {
+    background: var(--blue-light); color: var(--blue); border: none; border-radius: 8px;
+    padding: 7px 10px; font-size: 11px; font-weight: 700; cursor: pointer; font-family: inherit;
+  }
+  .skill-gap-card-item .plan-add-btn { width: 100%; }
+  .plan-add-btn.added { background: var(--orange); color: #fff; }
+  .trait-card .plan-add-btn { width: 100%; margin-top: 10px; }
+  .jobsearch-tool-card .plan-add-btn { width: 100%; margin-top: 10px; }
+
+  .similar-jobs-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .similar-jobs-table tr { border-bottom: 1px solid var(--line); }
+  .similar-jobs-table tr:last-child { border-bottom: none; }
+  .similar-jobs-table td { padding: 10px 2px; }
+  .similar-jobs-table td.salary { text-align: right; color: var(--blue); font-weight: 600; font-size: 12.5px; white-space: nowrap; }
+  .skill-stats { font-size: 11px; color: var(--sub); }
+  .skill-stats b { color: var(--ink); }
+
+  .plan-card { background: #fff; border: 1.5px solid var(--orange); border-radius: 14px; padding: 16px; margin-top: 14px; }
+  .plan-progress-track { height: 8px; background: #F0F0EE; border-radius: 4px; overflow: hidden; margin: 4px 0 6px; }
+  .plan-progress-fill { height: 100%; background: var(--orange); }
+  .plan-progress-label { font-size: 11.5px; color: var(--sub); margin-bottom: 10px; }
+  .plan-filter-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .plan-filter-row .native-select { flex: 0 0 auto; width: auto; font-size: 12px; padding: 6px 10px; }
+  .plan-delete-checked-btn {
+    margin-left: auto; background: none; border: 1px solid var(--line); border-radius: 8px;
+    padding: 6px 10px; font-size: 12px; color: var(--sub); cursor: pointer; font-family: inherit;
+  }
+  .plan-delete-checked-btn:disabled { opacity: .4; cursor: not-allowed; }
+  .plan-checklist-item {
+    display: flex; align-items: center; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 12.5px;
+  }
+  .plan-checklist-item:last-of-type { border-bottom: none; }
+  .plan-checklist-item input[type="checkbox"] { width: 16px; height: 16px; flex: 0 0 auto; }
+  .plan-checklist-item.done .plan-item-text { text-decoration: line-through; color: var(--sub); }
+
+  .trait-carousel-row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 4px; margin-top: 4px; }
+  .trait-card { flex: 0 0 auto; width: 250px; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+  .trait-fit { display: inline-block; background: #E6F7F3; color: #1A9E7C; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; margin-right: 6px; }
+  .trait-name-text { font-size: 15px; font-weight: 700; }
+  .trait-salary-row { font-size: 12.5px; color: var(--sub); margin-top: 8px; }
+  .trait-salary-row .trend { color: #2E9A50; font-weight: 700; margin-left: 4px; }
+  .trait-desc-label { font-size: 11.5px; font-weight: 700; color: var(--ink); margin-top: 10px; }
+  .trait-desc-text { font-size: 12px; color: var(--sub); line-height: 1.6; margin-top: 3px; }
+  .job-content-card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin: 10px 0; }
+  .trait-tools { font-size: 11.5px; color: var(--sub); margin-top: 6px; }
+  .trait-prompt { font-size: 12.5px; color: var(--blue); font-weight: 600; margin-top: 10px; }
+  .trait-attrs { display: flex; justify-content: space-between; gap: 8px; margin-top: 12px; }
+  .trait-attr { flex: 1; text-align: center; }
+  .trait-attr-name { font-size: 10.5px; color: var(--sub); margin-bottom: 6px; }
+  .trait-dots { color: var(--orange); font-size: 13px; letter-spacing: 2px; }
+  .trait-jobs { display: block; text-align: center; padding-top: 12px; margin-top: 12px; border-top: 1px solid var(--line); color: var(--blue); font-weight: 700; font-size: 12.5px; }
+
+  .job-carousel-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; margin-top: 4px; }
+  .job-carousel-card {
+    flex: 0 0 auto; width: 140px; text-align: left;
+    padding: 12px; background: #FAFAFA; border-radius: 12px; font-size: 13px;
+    cursor: pointer; border: 1px solid var(--line);
+  }
+  .job-carousel-card.selected { border-color: var(--orange); background: var(--orange-light); }
+  .job-carousel-card.static { cursor: default; }
+  .job-carousel-name { display: block; font-weight: 700; margin-bottom: 6px; }
+  .job-carousel-salary { display: block; color: var(--blue); font-weight: 600; font-size: 12.5px; }
+  .tool-cta {
+    display: block; width: 100%; box-sizing: border-box; text-align: center; background: var(--orange);
+    color: #fff; font-size: 14px; font-weight: 700; padding: 11px; border-radius: 10px;
+    border: none; margin-top: 4px; cursor: pointer; text-decoration: none;
+  }
+  .tool-cta.ghost { background: #fff; color: var(--orange); border: 1.5px solid var(--orange); }
+  .tool-cta.disabled { background: #E3E0DA; color: #A39A8E; cursor: not-allowed; font-family: inherit; }
+
+  .mini-label { font-size: 11.5px; font-weight: 700; color: var(--sub); margin: 4px 0 8px; }
+  .filter-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 10px; }
+  .filter-chip {
+    flex: 0 0 auto; padding: 6px 14px; border-radius: 20px; border: 1px solid var(--line);
+    background: #fff; font-size: 12.5px; font-family: inherit; color: var(--sub); font-weight: 600;
+    cursor: pointer; white-space: nowrap;
+  }
+  .filter-chip.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .empty-note { font-size: 12.5px; color: var(--sub); padding: 14px; text-align: center; }
+  .carousel-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 4px; }
+  .carousel-card {
+    flex: 0 0 auto; width: 190px; background: var(--card); border: 1px solid var(--line);
+    border-radius: 12px; padding: 12px;
+  }
+  .carousel-card .title { font-size: 13px; font-weight: 700; margin: 8px 0 4px; line-height: 1.4; }
+  .carousel-card .cta {
+    display: block; text-align: center; margin-top: 10px; padding: 7px;
+    border-radius: 8px; background: var(--orange-light); color: var(--orange); font-size: 12px; font-weight: 700;
+  }
+  .carousel-card .cta.blue { background: var(--blue-light); color: var(--blue); }
+
+  .classroom-follow-btn { background: var(--blue-light); color: var(--blue); border: none; border-radius: 8px; padding: 6px 14px; font-size: 11.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .classroom-follow-btn.followed { background: var(--orange); color: #fff; }
+  a.feed-card { text-decoration: none; color: inherit; display: block; }
+
+  .jobsearch-carousel-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+  .jobsearch-tool-card {
+    flex: 0 0 auto; width: 148px; display: flex; flex-direction: column; align-items: center; text-align: center;
+    background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 16px 12px 14px;
+  }
+  .jobsearch-tool-icon { font-size: 20px; flex: 0 0 auto; width: 38px; height: 38px; background: var(--orange-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+  .jobsearch-tool-title { font-size: 13px; font-weight: 700; }
+  .jobsearch-tool-desc { font-size: 11px; color: var(--sub); margin-top: 4px; line-height: 1.4; }
+  .jobsearch-tool-cta { display: block; box-sizing: border-box; width: 100%; margin-top: auto; background: var(--orange); color: #fff; border: none; border-radius: 8px; padding: 8px 6px; font-size: 11.5px; font-weight: 700; cursor: pointer; font-family: inherit; text-align: center; text-decoration: none; }
+
+  /* 03 / 04 feed */
+  .feed-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+  .tag-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .feed-badge {
+    margin-left: auto; font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 20px;
+    background: #F0F0EE; color: var(--sub);
+  }
+  .feed-badge.on { background: var(--ink); color: #fff; }
+  .feed-badge.on::before { content: "✨ "; }
+  .tag { font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+  .tag.article { background: var(--blue-light); color: var(--blue); }
+  .tag.course { background: #F3ECFB; color: #7A3FC4; }
+  .tag.quiz { background: #ECF8EE; color: #2E9A50; }
+  .tag.post { background: var(--orange-light); color: var(--orange); }
+  .tag.classroom { background: #EAF6F2; color: #1A9E7C; }
+  .tag.cert { background: #FDF3D8; color: #9A6B00; }
+  .feed-source { font-size: 11px; color: var(--sub); }
+  .feed-title { font-size: 14.5px; font-weight: 700; margin: 2px 0 4px; line-height: 1.4; }
+  .feed-desc { font-size: 12.5px; color: var(--sub); line-height: 1.5; }
+  .feed-actions { display: flex; gap: 16px; margin-top: 10px; font-size: 11.5px; color: var(--sub); }
+  .content-hub-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .content-hub-header .l1-tag-row {
+    flex: 1; min-width: 0; margin-bottom: 0; gap: 4px;
+    background: #F1EFEA; border-radius: 12px; padding: 4px;
+  }
+  .content-hub-header .order-toggle-btn { flex: 0 0 auto; white-space: nowrap; }
+  .l1-tag-row .filter-chip {
+    font-size: 13px; font-weight: 700; padding: 8px 16px; border: none;
+    background: transparent; color: var(--sub); border-radius: 9px;
+  }
+  .l1-tag-row .filter-chip.active { background: #fff; color: var(--ink); box-shadow: 0 1px 4px rgba(33,31,29,0.14); }
+  #contentIntro.section-sub { margin: 0 2px 12px; }
+  .content-hub-l2-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .content-hub-l2-row .l2-tag-row { flex: 1; min-width: 0; margin-bottom: 0; }
+  .l2-tag-row .filter-chip { font-size: 11px; font-weight: 600; padding: 5px 12px; }
+  .see-more-link { flex: 0 0 auto; font-size: 12px; font-weight: 700; color: var(--blue); text-decoration: none; white-space: nowrap; }
+  .feed-cta { display: inline-block; margin-top: 8px; padding: 6px 14px; border-radius: 8px; background: var(--orange-light); color: var(--orange); font-size: 11.5px; font-weight: 700; }
+  .feed-cta.blue { background: var(--blue-light); color: var(--blue); }
+  .feed-cta.gold { background: #FDF3D8; color: #9A6B00; }
+  .feed-end-note { text-align: center; font-size: 11.5px; color: var(--sub); padding: 18px 0 6px; }
+  #contentFeed { transition: opacity .15s ease; }
+  #contentFeed.feed-swapping { opacity: .35; }
+
+  .salary-pr-card { margin-bottom: 14px; }
+  .salary-pr-inner { background: var(--orange-light); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .salary-pr-row-line { font-size: 14px; display: flex; align-items: center; gap: 8px; }
+  .salary-pr-edit-btn { background: none; border: none; font-size: 13px; cursor: pointer; padding: 0; line-height: 1; }
+  .salary-pr-k { color: var(--ink); font-weight: 600; margin-right: 6px; }
+  .salary-pr-v { color: var(--blue); font-weight: 700; }
+  .salary-pr-region { font-size: 12.5px; color: var(--sub); }
+  .salary-pr-fields { display: flex; gap: 10px; }
+  .salary-pr-fields .field-block { flex: 1; }
+  .salary-pr-fields input[type="number"] { background: #fff; appearance: textfield; -webkit-appearance: textfield; }
+  .salary-pr-avg { text-align: center; font-size: 14px; font-weight: 700; }
+  .salary-pr-avg b { color: var(--orange); font-size: 20px; }
+  .salary-pr-slider-wrap { position: relative; padding-top: 34px; }
+  .salary-pr-tooltip { position: absolute; top: 0; transform: translateX(-50%); background: var(--ink); color: #fff; font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 8px; white-space: nowrap; }
+  .salary-pr-tooltip::after { content: ""; position: absolute; left: 50%; top: 100%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: var(--ink); }
+  .salary-pr-track { height: 6px; border-radius: 3px; background: linear-gradient(90deg, #FFD98A, var(--orange)); position: relative; }
+  .salary-pr-thumb { position: absolute; top: 50%; width: 16px; height: 16px; border-radius: 50%; background: #fff; border: 3px solid var(--orange); transform: translate(-50%, -50%); box-shadow: 0 1px 4px rgba(0,0,0,.2); }
+  .salary-pr-scale { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--sub); text-align: center; }
+  .salary-pr-scale b { display: block; color: var(--ink); font-size: 12.5px; }
+
+  .icon-btn { border: none; background: none; font-size: 18px; cursor: pointer; padding: 0; color: #444; font-family: inherit; }
+  .nav-plan-btn { position: relative; }
+  .nav-plan-badge {
+    position: absolute; top: -6px; right: -9px; background: var(--orange); color: #fff;
+    font-size: 10px; font-weight: 700; border-radius: 10px; min-width: 16px; height: 16px;
+    display: flex; align-items: center; justify-content: center; padding: 0 4px;
+  }
+  .toast {
+    position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%);
+    max-width: 380px; width: calc(100% - 32px); background: #211F1D; color: #fff;
+    font-size: 13px; font-weight: 600; padding: 12px 18px; border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2); z-index: 60; opacity: 0; pointer-events: none;
+    transition: opacity .25s ease; text-align: center;
+  }
+  .toast.show { opacity: 1; }
+
+  .search-overlay {
+    display: none; flex-direction: column;
+    position: fixed; inset: 0; max-width: 414px; margin: 0 auto;
+    background: #fff; z-index: 50;
+  }
+  .search-overlay.open { display: flex; }
+  .search-header {
+    display: flex; align-items: center; gap: 10px; padding: 14px 16px;
+    border-bottom: 1px solid var(--line); flex: 0 0 auto;
+  }
+  .search-header .icon-btn { font-size: 20px; }
+  .search-input {
+    flex: 1; border: 1px solid var(--line); border-radius: 20px; padding: 9px 14px;
+    font-size: 14px; font-family: inherit; color: var(--ink);
+  }
+  .search-scope-hint { font-size: 11.5px; color: var(--sub); padding: 10px 16px 0; flex: 0 0 auto; }
+  .search-results { flex: 1; overflow-y: auto; padding: 10px 16px 24px; }
+  .search-hint { font-size: 12.5px; color: var(--sub); text-align: center; padding: 40px 20px; }
+  .search-result-item {
+    display: flex; align-items: center; gap: 10px; padding: 12px 0;
+    border-bottom: 1px solid var(--line); cursor: pointer; background: none; border-left: none; border-right: none; border-top: none;
+    width: 100%; text-align: left; font-family: inherit;
+  }
+  .search-result-item .info { flex: 1; min-width: 0; }
+  .search-result-item .info .title { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+  .search-result-item .info .source { font-size: 11px; color: var(--sub); margin-top: 2px; }
+  .search-result-count { font-size: 11.5px; color: var(--sub); margin: 4px 0 2px; }
+</style>
+</head>
+<body>
+<div class="frame">
+
+  <header class="topbar">
+    <div class="icons" style="gap:10px;">☰</div>
+    <div class="logo"><span class="n104">104</span><span>職涯</span></div>
+    <div class="icons">
+      <button type="button" class="icon-btn" onclick="openSearch()">🔍</button>
+      <button type="button" class="icon-btn nav-plan-btn" onclick="openPlanPanel()">🎯<span class="nav-plan-badge" id="navPlanBadge" hidden>0</span></button>
+      <div class="avatar">👤</div>
+    </div>
+  </header>
+
+  <div class="search-overlay" id="searchOverlay">
+    <div class="search-header">
+      <button type="button" class="icon-btn" onclick="closeSearch()">←</button>
+      <input type="text" class="search-input" id="searchInput" placeholder="搜尋文章、課程、測驗、問答貼文、共學教室" oninput="handleSearchInput(this.value)" />
+    </div>
+    <p class="search-scope-hint">搜尋範圍：職場力文章、線上課程、職涯測驗、職場問答貼文、共學教室</p>
+    <div class="search-results" id="searchResults">
+      <div class="search-hint">輸入關鍵字開始搜尋</div>
+    </div>
+  </div>
+
+  <div class="search-overlay" id="planOverlay">
+    <div class="search-header">
+      <button type="button" class="icon-btn" onclick="closePlanPanel()">←</button>
+      <p style="font-size:16px;font-weight:700;">🎯 我的職涯行動清單</p>
+    </div>
+    <div class="search-results" id="planPanelBody"></div>
+  </div>
+
+  <div class="search-overlay" id="orderOverlay">
+    <div class="search-header">
+      <button type="button" class="icon-btn" onclick="closeOrderModal()">←</button>
+      <p style="font-size:16px;font-weight:700;">⚙️ 自訂排序</p>
+    </div>
+    <div class="search-results" id="orderModalBody"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <section>
+    <p class="section-title"><span class="bar"></span>你正在經歷哪個職涯階段？</p>
+    <p class="section-sub">選一個最貼近你現在狀態的階段，下方內容會跟著調整。</p>
+    <div class="need-carousel-row" id="needRow"></div>
+    <div class="need-hint" id="needHint"></div>
+  </section>
+
+  <div class="personalize-banner" id="personalizeBanner"></div>
+
+  <section>
+    <p class="section-title"><span class="bar"></span>個人化職涯工具與資源</p>
+    <div id="toolArea"></div>
+  </section>
+
+  <div id="contentSectionsContainer">
+
+  <section id="contentHub">
+    <div class="content-hub-header">
+      <div class="filter-row l1-tag-row" id="l1TagRow"></div>
+      <button type="button" class="order-toggle-btn" id="orderToggleBtn" onclick="openOrderModal()">⚙️ 自訂排序</button>
+    </div>
+    <p class="section-sub" id="contentIntro"></p>
+    <div class="content-hub-l2-row">
+      <div class="filter-row l2-tag-row" id="l2Filter"></div>
+      <a class="see-more-link" id="seeMoreLink" href="#" target="_blank" rel="noopener">更多 &gt;&gt;</a>
+    </div>
+    <div id="contentFeed"></div>
+  </section>
+
+  </div>
+
+</div>
+
+<script>
+const NEEDS = [
+  { key: "explore", emoji: "🧭", title: "探索方向中", desc: "還不確定方向，想先了解自己可能適合什麼" },
+  { key: "jobsearch",emoji: "📨", title: "積極求職中", desc: "正在密集投遞履歷、準備面試，想加快找到下一份工作" },
+  { key: "transfer",emoji: "🔄", title: "考慮轉職中", desc: "正在考慮轉職，想評估可行性與準備方向" },
+  { key: "growth",  emoji: "📈", title: "穩定工作中", desc: "想在目前職涯中提升能力、爭取升遷或加薪" },
+];
+
+const CLASSROOM_TAGS = ["推薦", "已關注"];
+
+const INTRO = {
+  default: { articles: "綜合熱門文章與課程，選擇上方需求後會依主題調整", community: "綜合熱門討論與測驗，選擇上方需求後會依主題調整", classroom: "綜合熱門共學教室，選擇上方需求後會依主題調整" },
+  explore: { articles: "為你推薦：幫助你認識興趣與能力、探索方向的文章與課程", community: "為你推薦：職務探索與轉換的真實經驗，以及相關測驗", classroom: "為你推薦：新鮮人求職與職務探索相關的共學教室" },
+  growth:  { articles: "為你推薦：技能提升、升遷與加薪準備的文章與課程", community: "為你推薦：升遷與加薪相關的真實經驗，以及相關測驗", classroom: "為你推薦：技能提升與職場升遷相關的共學教室" },
+  transfer:{ articles: "為你推薦：轉職準備、履歷與面試相關的文章與課程", community: "為你推薦：轉職心路歷程與真實經驗，以及相關測驗", classroom: "為你推薦：目標職務技能與證照相關的共學教室" },
+  jobsearch:{ articles: "為你推薦：面試準備、履歷健診相關的文章與課程", community: "為你推薦：求職應徵、面試心得的真實經驗，以及相關測驗", classroom: "為你推薦：面試互助與履歷健診相關的共學教室" },
+};
+
+const DATA = {
+  default: {
+    tool: {
+      ctaText: "選擇上方職涯需求，開始個人化探索",
+      ctaGhost: true,
+    },
+    articles: [
+      { tag: "article", tagLabel: "文章", category: "面試履歷", source: "104職場力", title: "履歷撰寫的三度", desc: "求職過程中，履歷撰寫總是最重要的第一個階段，一份好履歷該怎麼寫才能受到面試主管的青睞？" },
+    ],
+    courses: [
+      { tag: "course", tagLabel: "課程", source: "104 職涯學院", title: "免費求職特攻班：履歷撰寫 & 面試技巧", desc: "從履歷到面試，一次搞懂求職必備技巧。" },
+      { tag: "course", tagLabel: "課程", source: "104學習", title: "職場溝通力：跨部門協作實戰", desc: "學會如何有效率地跨部門溝通協作。" },
+    ],
+    quizzes: [
+      { tag: "quiz", tagLabel: "測驗", source: "104職涯測驗", title: "3 分鐘職場性格探索測驗", desc: "還不確定自己的職場性格？用 3 分鐘快速了解你的工作風格傾向。" },
+      { tag: "quiz", tagLabel: "測驗", source: "104職涯測驗", title: "職場小白求職知識大考驗", desc: "測試你對求職基本知識的掌握程度。" },
+    ],
+    community: [
+      { tag: "post", tagLabel: "話題討論", source: "104人力銀行", title: "在104上班這款事：辦公室生存實錄", desc: "實習生帶你看104的日常，一包衛生紙背後的 Giver 精神。" },
+      { tag: "post", tagLabel: "話題討論", source: "匿名用戶", title: "求職路上你遇過最難忘的面試經驗是什麼？", desc: "大家來分享自己印象最深刻的一次面試故事。" },
+    ],
+    classrooms: [
+      { name: "新鮮人求職攻略🔥 找工作與技能養成請進", members: 6282, posts: 94, curator: "陳立婕 | 產品行銷專案經理" },
+      { name: "超級辦公室達人", members: 5995, posts: 58, curator: "104學習 | 產品" },
+    ],
+  },
+  explore: {
+    tool: {
+      test: {
+        intro: "想知道哪些職務最適合你的興趣與性格嗎？",
+        introSub: "前往 3 分鐘職場性格探索測驗，獲得更準確的職務推薦（尚未完成測驗）",
+        ctaText: "前往測驗",
+        skipText: "直接看熱門職務方向",
+      },
+      personalityTypes: ["溝通型", "分析型", "創意型", "邏輯型", "協調型"],
+      candidates: [
+        { name: "行銷企劃", salary: "月薪 4.2萬" },
+        { name: "UX/UI 設計師", salary: "月薪 5.0萬" },
+        { name: "客戶成功經理", salary: "月薪 4.8萬" },
+      ],
+      traitCards: [
+        {
+          name: "健康管理師", fit: "非常適合", salary: "4.6萬", trend: null,
+          desc: "為企業或機構規劃健康促進活動，追蹤員工健康數據，提供飲食與運動建議。",
+          tools: "健康管理系統、問卷工具、數據報表",
+          prompt: "你喜歡透過陪伴與追蹤，幫助別人變得更好嗎？",
+          traits: [{ name: "抗壓性", rating: 3 }, { name: "堅毅性", rating: 3 }, { name: "冒險性", rating: 3 }],
+          jobs: 524,
+        },
+        {
+          name: "教育訓練專員", fit: "非常適合", salary: "4.0萬", trend: "▲1.8%",
+          desc: "設計並執行企業內部培訓課程，評估訓練成效，協助員工提升職能。",
+          tools: "教材製作、簡報工具、問卷與成效評估",
+          prompt: "你喜歡站在台前，把知識傳遞給別人嗎？",
+          traits: [{ name: "表達力", rating: 3 }, { name: "同理心", rating: 2 }, { name: "耐心", rating: 3 }],
+          jobs: 186,
+        },
+        {
+          name: "公關專員", fit: "適合", salary: "4.3萬", trend: null,
+          desc: "規劃品牌對外溝通策略，處理媒體關係與公關活動，維護企業形象。",
+          tools: "新聞稿撰寫、媒體聯繫、社群溝通",
+          prompt: "你喜歡在壓力下快速應變、對外溝通嗎？",
+          traits: [{ name: "溝通力", rating: 3 }, { name: "應變力", rating: 3 }, { name: "抗壓性", rating: 2 }],
+          jobs: 245,
+        },
+      ],
+    },
+    articles: [
+      { tag: "article", tagLabel: "文章", category: "職場觀點", source: "104職場力", title: "還不知道自己適合什麼工作？先從這 3 件事開始盤點", desc: "了解自己的興趣、能力與工作偏好，是找到適合職務的第一步。" },
+      { tag: "article", tagLabel: "文章", category: "職場觀點", source: "104職場力", title: "有工作經驗的人，也能重新探索職涯方向", desc: "不是只有新鮮人需要職涯探索，轉換跑道前更該先釐清方向。" },
+      { tag: "article", tagLabel: "文章", category: "產業趨勢", source: "104職場力", title: "後疫情時代興起的 5 種新職務，你聽過幾個？", desc: "從零工經濟到永續顧問，職場上正出現過去沒有的職務類型。" },
+      { tag: "article", tagLabel: "文章", category: "技能提升", source: "104職場力", title: "探索職涯方向前，先搞懂這 3 種能力落差", desc: "興趣、能力與市場需求常常不對齊，先分清楚才不會白走一段路。" },
+      { tag: "article", tagLabel: "文章", category: "面試履歷", source: "104職場力", title: "新鮮人第一份工作面試，最容易被問倒的 5 個問題", desc: "整理新鮮人最常遇到、也最容易語塞的面試提問與回答方向。" },
+    ],
+    courses: [
+      { tag: "course", tagLabel: "課程", source: "104 職涯學院", title: "3 分鐘找到你的職涯方向：探索工作坊", desc: "透過引導式練習，快速釐清自己的職涯方向。" },
+      { tag: "course", tagLabel: "課程", source: "104學習", title: "從興趣到職業：自我探索實戰課", desc: "把興趣轉化為具體的職涯選項。" },
+      { tag: "course", tagLabel: "課程", source: "104學習", title: "職涯定位工作坊：找到你的第一份理想工作", desc: "從自我盤點到投遞策略，陪你走完第一份工作的準備。" },
+    ],
+    quizzes: [
+      { tag: "quiz", tagLabel: "測驗", source: "104職涯測驗", title: "興趣與能力探索測驗", desc: "透過測驗找出你可能適合的職務方向，不限新鮮人或轉職者。" },
+      { tag: "quiz", tagLabel: "測驗", source: "104職涯測驗", title: "職場性格探索測驗", desc: "3 分鐘了解你的職場性格傾向。" },
+      { tag: "quiz", tagLabel: "測驗", source: "104職涯測驗", title: "職業興趣探索量表", desc: "從 6 大職業興趣類型，看看你可能適合哪個方向。" },
+    ],
+    certificates: [
+      { tag: "cert", tagLabel: "證照", source: "104職能發展中心", title: "TOEIC 多益測驗", desc: "國際通用的英語能力證明，多數職務的基本門檻，愈早考愈有優勢。" },
+      { tag: "cert", tagLabel: "證照", source: "104職能發展中心", title: "MOS Office 專業認證", desc: "驗證 Word／Excel／PowerPoint 操作能力，新鮮人履歷上常見的加分項。" },
+      { tag: "cert", tagLabel: "證照", source: "104職能發展中心", title: "Google 數位行銷證照", desc: "免費線上課程＋認證，適合還在摸索方向、想先累積作品的人。" },
+    ],
+    community: [
+      { tag: "post", tagLabel: "經驗分享", source: "匿名用戶", title: "我從行政助理轉做UX設計的心路歷程", desc: "分享從零開始摸索新職涯方向的真實歷程與心得。" },
+      { tag: "post", tagLabel: "話題討論", source: "匿名用戶", title: "工作三年還是不知道自己要什麼，正常嗎？", desc: "來聊聊大家是怎麼找到自己方向的。" },
+      { tag: "post", tagLabel: "經驗分享", source: "匿名用戶", title: "我花了半年才搞懂自己真正想做什麼", desc: "分享自己從迷惘到逐漸找到方向的真實歷程。" },
+      { tag: "post", tagLabel: "話題討論", source: "匿名用戶", title: "新鮮人該選大公司還是小公司？", desc: "來看看前輩們對第一份工作選擇的不同觀點。" },
+      { tag: "post", tagLabel: "經驗分享", source: "匿名用戶", title: "做了 3 次職業興趣測驗，結果都不一樣怎麼辦？", desc: "聊聊測驗結果不一致時，還可以怎麼進一步確認方向。" },
+    ],
+    classrooms: [
+      { tag: "classroom", tagLabel: "共學", classroomName: "新鮮人求職攻略🔥 找工作與技能養成請進", source: "陳立婕 | 產品行銷專案經理", title: "第一份工作該怎麼選？3個新鮮人常見迷思", desc: "整理新鮮人選擇第一份工作時最容易陷入的幾個迷思，附上教室內學員的真實討論。" },
+      { tag: "classroom", tagLabel: "共學", classroomName: "全民英檢GEPT，職場升級最強助力！", source: "全民英檢 | 英文測驗首選", title: "準備GEPT中高級，這份讀書計畫表分享給你", desc: "教室內學員整理的8週讀書計畫，從單字到口說一次搞定。" },
+      { tag: "classroom", tagLabel: "共學", classroomName: "職場新鮮人互助會", source: "104職涯 | 編輯", title: "面試完沒收到通知，要主動追蹤嗎？", desc: "教室內熱門討論串，整理前輩們對這個問題的不同看法。" },
+      { tag: "classroom", tagLabel: "共學", classroomName: "自我探索工作坊實錄", source: "張采薇 | 職涯顧問", title: "做完性格測驗後，我才發現自己適合這份工作", desc: "學員分享從測驗結果到實際投遞的心路歷程。" },
+      { tag: "classroom", tagLabel: "共學", classroomName: "興趣轉職業實驗室", source: "104學習 | 產品", title: "興趣能不能當飯吃？3個真實案例分享", desc: "教室成員分享把興趣轉換成職業的實際經驗與取捨。" },
+    ],
+  },
+  growth: {
+    tool: {
+      jobLabel: "現職",
+      currentJobOptions: [
+        {
+          name: "行銷企劃",
+          salaryP25: 3.8, salaryMedian: 4.6, salaryP75: 5.8,
+          skillsMissing: [
+            { skill: "數據分析進階", course: "行銷數據分析實戰" },
+            { skill: "SEO/SEM投放", course: "數位廣告投放入門" },
+            { skill: "簡報與提案", course: "提案簡報技巧課" },
+          ],
+          skillsHave: ["內容企劃", "社群操作", "專案執行", "跨部門溝通"],
+          skillsAI: ["AI行銷工具應用", "AI文案生成"],
+          matchCompany: 58, matchPeers: 35,
+        },
+        {
+          name: "業務開發專員",
+          salaryP25: 3.5, salaryMedian: 4.5, salaryP75: 6.0,
+          skillsMissing: [
+            { skill: "顧問式銷售", course: "顧問式銷售技巧課" },
+            { skill: "CRM系統操作", course: "CRM系統實戰應用" },
+          ],
+          skillsHave: ["陌生開發", "談判技巧", "客戶關係維繫"],
+          skillsAI: ["AI銷售話術生成"],
+          matchCompany: 50, matchPeers: 40,
+        },
+        {
+          name: "人資專員",
+          salaryP25: 3.6, salaryMedian: 4.3, salaryP75: 5.2,
+          skillsMissing: [
+            { skill: "勞動法規應用", course: "勞基法實務應用課" },
+            { skill: "人才數據分析", course: "People Analytics 入門" },
+          ],
+          skillsHave: ["招募面談", "員工關係", "教育訓練規劃"],
+          skillsAI: ["AI履歷篩選工具"],
+          matchCompany: 45, matchPeers: 30,
+        },
+        {
+          name: "客服人員",
+          salaryP25: 3.0, salaryMedian: 3.6, salaryP75: 4.3,
+          skillsMissing: [
+            { skill: "客訴危機處理", course: "客訴應對與情緒管理課" },
+            { skill: "數據回報分析", course: "客服數據分析入門" },
+          ],
+          skillsHave: ["電話應對", "系統操作", "標準流程執行"],
+          skillsAI: ["AI客服機器人協作"],
+          matchCompany: 40, matchPeers: 45,
+        },
+      ],
+      similarJobs: {
+        heading: "相似職業推薦",
+        items: [
+          { name: "產品行銷專員", salary: "月薪 4.6萬" },
+          { name: "內容行銷主編", salary: "月薪 4.8萬" },
+          { name: "數位廣告投手", salary: "月薪 4.5萬" },
+        ],
+      },
+      ctaText: "查看完整能力落差分析",
+      ctaGhost: false,
+    },
+    articles: [
+      { tag: "article", tagLabel: "文章", category: "技能提升", source: "104職場力", title: "升遷前該準備的 5 件事", desc: "想爭取升遷，除了把工作做好，還需要哪些軟實力與準備？" },
+      { tag: "article", tagLabel: "文章", category: "產業趨勢", source: "104職場力", title: "加薪怎麼談？3 個實戰技巧", desc: "談加薪前先搞懂自己的市場行情與籌碼。" },
+      { tag: "article", tagLabel: "文章", category: "職場觀點", source: "104職場力", title: "資深後該往管理走，還是走技術深耕？", desc: "兩種職涯路徑各自需要培養的能力與心態不同。" },
+      { tag: "article", tagLabel: "文章", category: "產業趨勢", source: "104職場力", title: "企業最需要的 5 項軟實力，你具備幾項？", desc: "從人才市場調查看企業端最在乎的能力缺口。" },
+      { tag: "article", tagLabel: "文章", category: "技能提升", source: "104職場力", title: "想拿到好績效，這 5 件事比加班更重要", desc: "績效評估不只看努力，更看你是否做對這幾件事。" },
+    ],
+    courses: [
+      { tag: "course", tagLabel: "課程", source: "104學習", title: "行銷企劃到行銷主管的技能地圖", desc: "從執行者到管理者，你需要補齊哪些能力？" },
+      { tag: "course", tagLabel: "課程", source: "104學習", title: "AI 行銷工具應用實戰", desc: "善用 AI 工具提升行銷工作效率。" },
+      { tag: "course", tagLabel: "課程", source: "104 職涯學院", title: "績效管理與目標設定實戰課", desc: "學會設定可被看見的工作目標，讓努力被看見。" },
+    ],
+    quizzes: [
+      { tag: "quiz", tagLabel: "測驗", source: "104職涯測驗", title: "管理職能力傾向測驗", desc: "評估你目前的管理職能力傾向與落差。" },
+      { tag: "quiz", tagLabel: "測驗", source: "104職涯測驗", title: "領導力風格測驗", desc: "了解你偏向哪種領導風格，找到適合自己的管理路徑。" },
+      { tag: "quiz", tagLabel: "測驗", source: "104職涯測驗", title: "職場軟實力自評量表", desc: "從溝通、協作到問題解決，檢視你的軟實力現況。" },
+    ],
+    certificates: [
+      { tag: "cert", tagLabel: "證照", source: "104職能發展中心", title: "PMP 專案管理師認證", desc: "管理職常見的加分證照，證明你具備帶專案的方法論基礎。" },
+      { tag: "cert", tagLabel: "證照", source: "104職能發展中心", title: "TTQS 人才發展品質管理系統證照", desc: "企業教育訓練相關認證，適合想往教育訓練／人資發展的工作者。" },
+      { tag: "cert", tagLabel: "證照", source: "104職能發展中心", title: "中階行銷企劃證照（AMA）", desc: "驗證行銷策略規劃能力，升遷／加薪時可作為具體佐證。" },
+    ],
+    community: [
+      { tag: "post", tagLabel: "經驗分享", source: "匿名用戶", title: "我是怎麼在兩年內升上主管的", desc: "分享自己爭取升遷過程中做對的幾件事。" },
+      { tag: "post", tagLabel: "話題討論", source: "匿名用戶", title: "加薪談判實戰分享，最後多談到 15%", desc: "來看看其他人的加薪談判經驗與技巧。" },
+      { tag: "post", tagLabel: "經驗分享", source: "匿名用戶", title: "我用這 3 招，把team從2人帶到10人", desc: "分享從個人貢獻者轉型管理職的實際心得。" },
+      { tag: "post", tagLabel: "話題討論", source: "匿名用戶", title: "你們公司的升遷標準透明嗎？", desc: "來聊聊不同公司在升遷評核上的透明度差異。" },
+      { tag: "post", tagLabel: "經驗分享", source: "匿名用戶", title: "加薪沒談成，但我學到更重要的事", desc: "談判失敗不代表白談，分享自己後來調整的策略。" },
+    ],
+    classrooms: [
+      { tag: "classroom", tagLabel: "共學", classroomName: "超級辦公室達人", source: "104學習 | 產品", title: "開會總是沒結論？這張會議紀錄模板幫你解決", desc: "教室內分享的高效會議紀錄模板，附使用範例。" },
+      { tag: "classroom", tagLabel: "共學", classroomName: "行銷新手村，一起變高手 ⚡", source: "JasJas | 行銷企劃", title: "行銷企劃新手最容易犯的5個錯誤", desc: "教室學員整理自己踩過的坑，給新手少走冤枉路。" },
+      { tag: "classroom", tagLabel: "共學", classroomName: "職場軟實力訓練營", source: "104學習 | 產品", title: "被主管說『溝通不夠主動』，我做了這些調整", desc: "學員分享收到這個回饋後具體做了哪些改變。" },
+      { tag: "classroom", tagLabel: "共學", classroomName: "主管升遷攻略交流站", source: "李彥廷 | 資深經理人", title: "從資深專員升主管，面試會被問什麼？", desc: "整理教室內學員實際升遷面試的提問與回答方向。" },
+      { tag: "classroom", tagLabel: "共學", classroomName: "績效與目標管理共學室", source: "104職涯 | 編輯", title: "OKR跟KPI到底差在哪？一次搞懂", desc: "教室熱門精華整理，用實際案例比較兩種目標管理方式。" },
+    ],
+  },
+  transfer: {
+    tool: {
+      jobLabel: "現職",
+      currentJobOptions: ["行銷企劃", "業務開發專員", "人資專員", "客服人員"],
+      selectLabel: "想轉職的目標職務",
+      candidates: [
+        {
+          name: "產品經理", salary: "月薪 6.5萬", salaryMedian: "6.5萬",
+          desc: "規劃產品方向與功能，協調設計、工程、行銷等團隊，確保產品符合市場與使用者需求。",
+          skillsMissing: [
+            { skill: "產品生命週期", course: "產品生命週期管理課" },
+            { skill: "競品分析", course: "競品分析方法論" },
+            { skill: "產品企劃", course: "PM產品經理｜入門致勝攻略" },
+            { skill: "Product Roadmap", course: "Product Roadmap規劃實戰" },
+            { skill: "產品發展", course: "產品發展策略課" },
+            { skill: "產品營運", course: "產品營運管理實戰" },
+            { skill: "定價策略", course: "產品定價策略課" },
+            { skill: "產品專案管理", course: "產品專案管理入門" },
+          ],
+          skillsHave: ["跨部門溝通", "數據分析"],
+          skillsAI: ["AI產品洞察", "AI需求預測"],
+          matchCompany: 15, matchPeers: 7,
+        },
+        {
+          name: "數據分析師", salary: "月薪 5.8萬", salaryMedian: "5.8萬",
+          desc: "整理與分析公司營運數據，建立報表與模型，協助各部門做數據驅動的決策。",
+          skillsMissing: [
+            { skill: "SQL", course: "SQL資料庫查詢入門" },
+            { skill: "統計分析", course: "統計分析基礎課" },
+            { skill: "Python", course: "Python資料分析入門" },
+            { skill: "資料視覺化", course: "資料視覺化實戰" },
+            { skill: "A/B測試", course: "A/B測試方法論" },
+            { skill: "機器學習基礎", course: "機器學習基礎課" },
+          ],
+          skillsHave: ["Excel", "簡報技巧"],
+          skillsAI: ["AI資料分析輔助"],
+          matchCompany: 30, matchPeers: 10,
+        },
+        {
+          name: "專案管理師", salary: "月薪 6.0萬", salaryMedian: "6.0萬",
+          desc: "規劃專案時程與資源分配，追蹤進度與風險，確保專案在預算與期限內如期交付。",
+          skillsMissing: [
+            { skill: "甘特圖排程", course: "專案排程與甘特圖實戰" },
+            { skill: "風險管理", course: "專案風險管理課" },
+            { skill: "PMP方法論", course: "PMP國際專案管理師認證班" },
+          ],
+          skillsHave: ["溝通協調", "跨部門溝通", "文件管理", "會議主持", "進度追蹤"],
+          skillsAI: ["AI專案排程建議"],
+          matchCompany: 55, matchPeers: 20,
+        },
+      ],
+      ctaText: "查看轉職可行性完整分析",
+      ctaGhost: false,
+    },
+    articles: [
+      { tag: "article", tagLabel: "文章", category: "面試履歷", source: "104職場力", title: "轉職履歷怎麼寫？2026 最新範本一次看", desc: "轉職準備中，履歷要如何呈現跨領域經驗才會加分？" },
+      { tag: "article", tagLabel: "文章", category: "技能提升", source: "104職場力", title: "從行銷轉職PM的準備清單", desc: "轉職前你需要先補齊哪些能力與作品？" },
+      { tag: "article", tagLabel: "文章", category: "技能提升", source: "104職場力", title: "轉職前，先搞懂目標職務的「隱性技能」", desc: "有些能力不會寫在JD上，但面試官一定會考察。" },
+      { tag: "article", tagLabel: "文章", category: "職場觀點", source: "104職場力", title: "轉職是重新開始，不是從零開始", desc: "既有經驗如何轉譯成新職務的優勢，而不是被視為不相關。" },
+      { tag: "article", tagLabel: "文章", category: "面試履歷", source: "104職場力", title: "轉職面試最常被問的「為什麼轉領域」怎麼回答", desc: "整理轉職面試中最關鍵的一題，以及好的回答結構。" },
+    ],
+    courses: [
+      { tag: "course", tagLabel: "課程", source: "104學習", title: "PM產品經理｜入門致勝攻略", desc: "打造最強怪物新人的實務課。" },
+      { tag: "course", tagLabel: "課程", source: "104 職涯學院", title: "轉職準備全攻略：履歷到面試", desc: "系統化準備轉職所需的每個環節。" },
+      { tag: "course", tagLabel: "課程", source: "104學習", title: "跨領域轉職技能地圖：從盤點到補齊", desc: "系統化盤點現職能力與目標職務落差，排出學習順序。" },
+    ],
+    quizzes: [
+      { tag: "quiz", tagLabel: "測驗", source: "104職涯測驗", title: "轉職可行性快篩測驗", desc: "3 分鐘初步評估你與目標職務的落差。" },
+      { tag: "quiz", tagLabel: "測驗", source: "104職涯測驗", title: "跨領域轉職適配度測驗", desc: "初步評估你的經驗與特質和目標領域的契合程度。" },
+      { tag: "quiz", tagLabel: "測驗", source: "104職涯測驗", title: "轉職準備度自評表", desc: "檢視履歷、作品與人脈準備，是否已經足以開始投遞。" },
+    ],
+    certificates: [
+      { tag: "cert", tagLabel: "證照", source: "104職能發展中心", title: "Google 數據分析專業證照", desc: "線上課程＋認證，適合想轉職數據分析但還沒有相關學歷背景的人。" },
+      { tag: "cert", tagLabel: "證照", source: "104職能發展中心", title: "六標準差綠帶認證", desc: "跨產業通用的流程改善方法論認證，轉職專案管理／營運相關職務的加分項。" },
+      { tag: "cert", tagLabel: "證照", source: "104職能發展中心", title: "ITIL 資訊服務管理認證", desc: "想轉職 IT 服務管理／專案管理方向的人常見的入門認證。" },
+    ],
+    community: [
+      { tag: "post", tagLabel: "經驗分享", source: "匿名用戶", title: "我從行銷企劃轉職PM的真實經驗", desc: "分享轉職過程中遇到的挑戰與準備方式。" },
+      { tag: "post", tagLabel: "話題討論", source: "匿名用戶", title: "轉職失敗後，我學到的 3 件事", desc: "轉職不是每次都順利，來看看別人的反思。" },
+      { tag: "post", tagLabel: "經驗分享", source: "匿名用戶", title: "我投了 80 封履歷才轉職成功，中間做對了什麼", desc: "分享轉職過程中履歷與面試策略的調整歷程。" },
+      { tag: "post", tagLabel: "話題討論", source: "匿名用戶", title: "轉職要先辭職準備，還是在職邊準備？", desc: "來看看不同選擇背後的風險與考量。" },
+      { tag: "post", tagLabel: "經驗分享", source: "匿名用戶", title: "轉職後薪水不增反減，我是怎麼想的", desc: "分享轉職初期薪資調整的心理調適與長期規劃。" },
+    ],
+    classrooms: [
+      { tag: "classroom", tagLabel: "共學", classroomName: "職場熱門證照排行榜", source: "104學習 | 產品", title: "2026年最多人在考的5張證照，你跟上了嗎？", desc: "教室整理今年詢問度最高的證照清單與準備資源。" },
+      { tag: "classroom", tagLabel: "共學", classroomName: "AI 趨勢報－科技愛好者的產地🤖", source: "104學習 | 產品", title: "不會寫code也能懂AI？這份入門地圖推薦給你", desc: "教室成員整理給非技術背景者的AI學習路徑。" },
+      { tag: "classroom", tagLabel: "共學", classroomName: "轉職準備加油站", source: "104職涯 | 編輯", title: "轉職面試被問『為什麼想離開現職』，這樣回答比較好", desc: "教室內常見轉職面試問題的回答建議整理。" },
+      { tag: "classroom", tagLabel: "共學", classroomName: "產品經理轉職共學室", source: "林書豪 | 資深PM", title: "沒有PM經驗，履歷該怎麼寫才有說服力？", desc: "教室學員分享用專案經驗包裝履歷的實際寫法。" },
+      { tag: "classroom", tagLabel: "共學", classroomName: "數據分析轉職交流站", source: "104學習 | 產品", title: "轉職數據分析，SQL要學到什麼程度才夠用？", desc: "教室內針對轉職者最常問的學習程度整理建議。" },
+    ],
+  },
+  jobsearch: {
+    tool: {
+      giverTools: [
+        { icon: "📝", title: "履歷健診", desc: "104 Giver 職涯志工一對一健診，獲得履歷優化建議，支援中英文履歷", cta: "預約履歷健診", url: "https://resume-clinic.104.com.tw/search?topic=0" },
+        { icon: "🎤", title: "線上模擬面試", desc: "熟練面試技巧，提前演練真實面試情境", cta: "預約模擬面試", url: "https://resume-clinic.104.com.tw/search?topic=1" },
+        { icon: "💬", title: "職場問答", desc: "匿名發問求職疑問，90% 問題一天內獲得前輩回覆", cta: "我要發問", url: "https://giver.104.com.tw/questionList/0?orderType=recommend" },
+      ],
+    },
+    articles: [
+      { tag: "article", tagLabel: "文章", category: "面試履歷", source: "104職場力", title: "面試前一定要準備的 7 個問題", desc: "面試官最常問的問題，你準備好怎麼回答了嗎？" },
+      { tag: "article", tagLabel: "文章", category: "面試履歷", source: "104職場力", title: "履歷被已讀不回？可能是這 5 個原因", desc: "投了很多履歷卻沒回應？先檢查這些常見的履歷地雷。" },
+      { tag: "article", tagLabel: "文章", category: "面試履歷", source: "104職場力", title: "線上面試前，一定要檢查的 5 個細節", desc: "從網路、燈光到背景，線上面試的小細節常常影響第一印象。" },
+      { tag: "article", tagLabel: "文章", category: "產業趨勢", source: "104職場力", title: "2026 年求職市場，哪些產業還在積極招募？", desc: "整理當前招募需求較旺的幾個產業與職務類型。" },
+      { tag: "article", tagLabel: "文章", category: "職場觀點", source: "104職場力", title: "求職被已讀不回，該怎麼調整心態？", desc: "密集投遞期難免遇到冷讀，分享幾個調整心態的方法。" },
+    ],
+    courses: [
+      { tag: "course", tagLabel: "課程", source: "104 職涯學院", title: "面試技巧特訓班：從自我介紹到談薪水", desc: "系統化準備面試的每一關。" },
+      { tag: "course", tagLabel: "課程", source: "104學習", title: "履歷健診前的自我檢核課", desc: "送出健診前，先用這堂課自己抓出履歷問題。" },
+      { tag: "course", tagLabel: "課程", source: "104 職涯學院", title: "薪資談判實戰課：開口前你該知道的事", desc: "從市場行情到談判話術，幫你談到合理的薪水。" },
+    ],
+    quizzes: [
+      { tag: "quiz", tagLabel: "測驗", source: "104職涯測驗", title: "面試準備度快篩測驗", desc: "3 分鐘檢測你的面試準備是否足夠。" },
+      { tag: "quiz", tagLabel: "測驗", source: "104職涯測驗", title: "求職市場行情快篩測驗", desc: "初步了解你目前的經驗在市場上的行情區間。" },
+      { tag: "quiz", tagLabel: "測驗", source: "104職涯測驗", title: "面試緊張指數自我檢測", desc: "面試前先了解自己的緊張指數，提早做好心理準備。" },
+    ],
+    certificates: [
+      { tag: "cert", tagLabel: "證照", source: "104職能發展中心", title: "TOEIC 多益測驗", desc: "許多企業篩選履歷時的硬指標，分數是否達標會直接影響面試機會。" },
+      { tag: "cert", tagLabel: "證照", source: "104職能發展中心", title: "iPAS 產業新尖兵能力鑑定", desc: "政府推動的新興產業能力鑑定，部分產業求職時可作為專業佐證。" },
+      { tag: "cert", tagLabel: "證照", source: "104職能發展中心", title: "TQC 專業設計人才認證", desc: "驗證軟體操作能力（簡報／文書／設計工具），履歷健診時常被建議補強的部分。" },
+    ],
+    community: [
+      { tag: "post", tagLabel: "經驗分享", source: "匿名用戶", title: "投了 50 封履歷後，我做對的 3 件事", desc: "密集求職期的心態調整與方法分享。" },
+      { tag: "post", tagLabel: "話題討論", source: "匿名用戶", title: "面試官問『為什麼離職』該怎麼回答？", desc: "來看看大家都是怎麼回答這個經典問題的。" },
+      { tag: "post", tagLabel: "經驗分享", source: "匿名用戶", title: "我同時手上有 3 個offer，是怎麼決定的", desc: "分享多個offer在手時，自己評估取捨的考量順序。" },
+      { tag: "post", tagLabel: "話題討論", source: "匿名用戶", title: "面試官問『期望薪資』該先開價嗎？", desc: "來看看大家在薪資談判開場時都怎麼應對。" },
+      { tag: "post", tagLabel: "經驗分享", source: "匿名用戶", title: "裸辭求職的 3 個月，我是怎麼撐過來的", desc: "分享沒有收入來源期間的心理調適與求職節奏安排。" },
+    ],
+    classrooms: [
+      { tag: "classroom", tagLabel: "共學", classroomName: "求職面試互助共學教室", source: "104職涯 | 編輯", title: "面試前最後衝刺，這5個問題一定要準備", desc: "教室整理面試官最常問、也最容易讓人語塞的5個問題。" },
+      { tag: "classroom", tagLabel: "共學", classroomName: "履歷健診前自我檢查教室", source: "104學習 | 產品", title: "送健診前先自己檢查這5點，少改一輪", desc: "教室學員整理健診前的自我檢核清單。" },
+      { tag: "classroom", tagLabel: "共學", classroomName: "面試模擬加油站", source: "104職涯 | 編輯", title: "線上模擬面試前，這些設備細節別忽略", desc: "教室成員分享線上面試前的設備與環境檢查清單。" },
+      { tag: "classroom", tagLabel: "共學", classroomName: "履歷健診互助會", source: "陳立婕 | 產品行銷專案經理", title: "履歷健診改了3次，我學到的3件事", desc: "學員分享多次送健診後，履歷實際的調整方向。" },
+      { tag: "classroom", tagLabel: "共學", classroomName: "薪資談判交流室", source: "104學習 | 產品", title: "拿到offer後，薪資該怎麼談才不失禮貌？", desc: "教室內整理薪資談判的開場話術與時機建議。" },
+    ],
+  },
+};
+
+const ARTICLE_TAGS = ["推薦", "產業趨勢", "技能提升", "面試履歷", "職場觀點"];
+const COMMUNITY_TAGS = ["推薦", "經驗分享", "話題討論"];
+
+let state = {
+  need: "jobsearch",
+  jobIndexByNeed: {},
+  skillTabByNeed: {},
+  baseJobByNeed: {},
+  exploreTest: { taken: false, skipped: false, personalityType: null },
+  activeL1: "articles",
+  articleTag: "推薦",
+  communityTag: "推薦",
+  classroomTag: "推薦",
+  followedClassrooms: new Set(["超級辦公室達人", "新鮮人求職攻略🔥 找工作與技能養成請進"]),
+  actionPlan: { items: [], completed: {} },
+  planStatusFilter: "全部",
+  sectionOrder: ["articles", "community", "classroom", "aiZone", "learning", "talent"],
+  sectionVisible: { articles: true, community: true, classroom: true, aiZone: false, learning: false, talent: false },
+};
+
+function resetActionPlan() {
+  state.actionPlan = { items: [], completed: {} };
+}
+
+function renderSalaryPRCard(job) {
+  if (!job || job.salaryMedian == null) return "";
+  return `
+    <div class="salary-pr-card">
+      <p class="section-title" style="margin-bottom:14px;"><span class="bar"></span>專屬於你的職業選擇建議</p>
+      <div class="salary-pr-inner">
+        <div class="salary-pr-row-line" id="salaryPRJobRow"><span class="salary-pr-k">你的職業是</span><span class="salary-pr-v">${job.name}</span><button type="button" class="salary-pr-edit-btn" onclick="toggleSalaryJobEdit()">✏️</button></div>
+        <div class="salary-pr-region">地區 台北市</div>
+        <div class="salary-pr-fields">
+          <div class="field-block">
+            <span class="field-label">工作經歷</span>
+            <select class="native-select">
+              <option>1年以下</option><option>1~3年</option><option selected>3~5年</option><option>5~10年</option><option>10年以上</option>
+            </select>
+          </div>
+          <div class="field-block">
+            <span class="field-label">輸入月薪看PR值</span>
+            <input type="number" class="native-select" placeholder="現在賺多少？" oninput="updateSalaryPR(${job.salaryP25},${job.salaryMedian},${job.salaryP75},'${job.name}',this.value)">
+          </div>
+        </div>
+        <div class="salary-pr-avg">平均月薪 <b>${job.salaryMedian}萬</b></div>
+        <div class="salary-pr-slider-wrap">
+          <div class="salary-pr-tooltip" id="salaryPRTooltip" style="left:50%">贏過 <span id="salaryPRPct">?</span>% 的${job.name}</div>
+          <div class="salary-pr-track"><div class="salary-pr-thumb" id="salaryPRThumb" style="left:50%"></div></div>
+        </div>
+        <div class="salary-pr-scale">
+          <div><span>25%</span><b>${job.salaryP25}萬</b></div>
+          <div><span>中位數</span><b>${job.salaryMedian}萬</b></div>
+          <div><span>75%</span><b>${job.salaryP75}萬</b></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function updateSalaryPR(p25, median, p75, jobName, value) {
+  // 使用者輸入的是實際月薪金額（例如 46000），但 p25/median/p75 是以「萬」為單位儲存，
+  // 換算成同樣的「萬」單位才能正確比較
+  const v = parseFloat(value) / 10000;
+  const pctEl = document.getElementById("salaryPRPct");
+  const thumbEl = document.getElementById("salaryPRThumb");
+  const tooltipEl = document.getElementById("salaryPRTooltip");
+  if (!pctEl || !value || isNaN(v) || v <= 0) {
+    if (pctEl) pctEl.textContent = "?";
+    if (thumbEl) thumbEl.style.left = "50%";
+    if (tooltipEl) tooltipEl.style.left = "50%";
+    return;
+  }
+  let pct;
+  if (v <= p25) pct = 25 * (v / p25);
+  else if (v <= median) pct = 25 + (v - p25) / (median - p25) * 25;
+  else if (v <= p75) pct = 50 + (v - median) / (p75 - median) * 25;
+  else pct = 75 + (v - p75) / (p75 - median) * 25;
+  pct = Math.max(1, Math.min(99, Math.round(pct)));
+  pctEl.textContent = pct;
+
+  let posPct = ((v - p25) / (p75 - p25)) * 100;
+  posPct = Math.max(0, Math.min(100, posPct));
+  thumbEl.style.left = posPct + "%";
+  tooltipEl.style.left = posPct + "%";
+}
+
+function defaultJobIndexFor(needKey) {
+  // 不自動預選目標職務：考慮轉職中的使用者應該主動選擇要比較的目標，
+  // 而不是被系統自動帶入一個他沒選過的落差分析結果
+  return null;
+}
+
+const NEEDS_TOOL_SUMMARY = {
+  explore: "性格測驗推薦適合的職務卡片",
+  jobsearch: "履歷健診／線上模擬面試／職場問答服務",
+  transfer: "目標職務必備技能落差分析",
+  growth: "現職必備技能落差＋相似職業推薦",
+};
+
+function currentData() { return DATA[state.need]; }
+
+function selectNeed(key) {
+  if (state.need === key) return;
+  state.need = key;
+  if (!(key in state.jobIndexByNeed)) state.jobIndexByNeed[key] = defaultJobIndexFor(key);
+  if (!(key in state.skillTabByNeed)) state.skillTabByNeed[key] = "missing";
+  state.articleTag = "推薦";
+  state.communityTag = "推薦";
+  state.classroomTag = "推薦";
+  state.activeL1 = state.sectionOrder.find(k => state.sectionVisible[k]) || state.sectionOrder[0];
+  renderAll();
+}
+
+function renderNeeds() {
+  const row = document.getElementById("needRow");
+  row.innerHTML = "";
+  NEEDS.forEach(n => {
+    const active = state.need === n.key;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "need-carousel-card reset-btn" + (active ? " active" : "");
+    btn.innerHTML = `
+      ${active ? `<span class="need-check">✓</span>` : ""}
+      <span class="icon-circle">${n.emoji}</span>
+      <div class="title">${n.title}</div>
+      <div class="desc">${n.desc}</div>`;
+    btn.onclick = () => selectNeed(n.key);
+    row.appendChild(btn);
+  });
+  const hint = document.getElementById("needHint");
+  hint.textContent = `已選擇「${NEEDS.find(n => n.key === state.need).title}」，下方內容已依此調整。`;
+}
+
+function renderPersonalizeBanner() {
+  const el = document.getElementById("personalizeBanner");
+  const key = state.need;
+  const title = NEEDS.find(n => n.key === key).title;
+  el.className = "personalize-banner";
+  el.innerHTML = `
+    <div class="personalize-main">已依「<b>${title}</b>」為你個人化</div>
+    <div class="personalize-detail">
+      <div class="personalize-item">🔹 顯示${NEEDS_TOOL_SUMMARY[key]}</div>
+      <div class="personalize-item">📚 下方職場力／職場問答／共學教室的內容主題也依此調整</div>
+    </div>`;
+}
+
+function currentJobNames(d) {
+  return d.currentJobOptions.map(o => typeof o === "string" ? o : o.name);
+}
+
+const SKILL_GAP_URL = "https://nabi.104.com.tw/cjcat/2004003009?utm_source=104career&utm_medium=wage_skillgap&utm_campaign=V1R2";
+const GROWTH_SKILL_GAP_URL = "https://nabi.104.com.tw/cjcat/2004001005";
+
+function toggleSalaryJobEdit() {
+  const row = document.getElementById("salaryPRJobRow");
+  if (!row) return;
+  const names = currentJobNames(currentData().tool);
+  const picked = state.baseJobByNeed.growth || names[0];
+  row.innerHTML = `
+    <span class="salary-pr-k">你的職業是</span>
+    <select class="native-select" style="width:auto;display:inline-block;" onchange="selectBaseJob('growth', this.value)">
+      ${names.map(n => `<option value="${n}" ${n === picked ? "selected" : ""}>${n}</option>`).join("")}
+    </select>`;
+}
+
+function renderJobContentSnippet(job) {
+  if (!job) return "";
+  return `
+    <div class="job-content-card">
+      <div class="trait-salary-row">💰 月薪中位數 ${job.salaryMedian || job.salary}</div>
+      <div class="trait-desc-label">工作中會做什麼？</div>
+      <div class="trait-desc-text">${job.desc || ""}</div>
+    </div>`;
+}
+
+function buildTargetSelector(needKey, d) {
+  if (!d.candidates) return "";
+  const jobIndex = needKey in state.jobIndexByNeed ? state.jobIndexByNeed[needKey] : null;
+  const placeholder = `<option value="" ${jobIndex === null ? "selected" : ""}>請選擇目標職務</option>`;
+  const options = d.candidates.map((c, i) =>
+    `<option value="${i}" ${jobIndex === i ? "selected" : ""}>${c.name}（${c.salary}）</option>`).join("");
+  const listHtml = `<div class="job-carousel-row">` + d.candidates.map((c, i) => `
+    <button type="button" class="job-carousel-card reset-btn ${i === jobIndex ? "selected" : ""}" onclick="selectJob('${needKey}', ${i})">
+      <span class="job-carousel-name">${c.name}</span><span class="job-carousel-salary">${c.salary}</span>
+    </button>`).join("") + `</div>`;
+
+  const active = jobIndex !== null ? d.candidates[jobIndex] : null;
+  const contentHtml = renderJobContentSnippet(active);
+  const gapHtml = active && active.skillsMissing
+    ? renderSkillGapCard(needKey, active)
+    : `<div class="placeholder-note">👆 選一個目標職務，立即看到必備技能落差</div>`;
+
+  return `
+    <div class="field-block">
+      <span class="field-label">${d.selectLabel || "目標職務"}</span>
+      <select class="native-select target" onchange="selectTargetFromDropdown('${needKey}', this.value)">${placeholder}${options}</select>
+    </div>
+    ${contentHtml}
+    ${gapHtml}
+    ${listHtml}`;
+}
+
+function renderSkillGapCard(needKey, active) {
+  const tabs = [
+    { key: "missing", label: `你還缺 ${active.skillsMissing.length} 項` },
+    { key: "have", label: `${active.skillsHave.length} 項已具備` },
+    { key: "ai", label: "AI 技能" },
+  ];
+  const activeTab = state.skillTabByNeed[needKey] || "missing";
+
+  let bodyHtml;
+  if (activeTab === "missing") {
+    bodyHtml = `<div class="skill-gap-carousel-row">` + active.skillsMissing.map(item => {
+      const added = state.actionPlan.items.some(i => i.id === item.skill);
+      return `
+      <div class="skill-gap-card-item">
+        <div class="skill-name">${item.skill}</div>
+        <div class="skill-course">📚 推薦課程：${item.course}</div>
+        <button type="button" class="plan-add-btn ${added ? "added" : ""}" onclick="toggleActionItem('${item.skill}', '${item.skill}', '${item.course}')">${added ? "✓ 已加入" : "+ 加入清單"}</button>
+      </div>`;
+    }).join("") + `</div>`;
+  } else {
+    const list = activeTab === "have" ? active.skillsHave : active.skillsAI;
+    bodyHtml = `<div class="skill-chip-row">${list.map(s => `<span class="skill-chip">${s}</span>`).join("")}</div>`;
+  }
+
+  return `
+    <div class="skill-gap-card">
+      <div class="skill-gap-heading">${active.name} 必備技能</div>
+      <div class="skill-tab-row">
+        ${tabs.map(t => `<button type="button" class="skill-tab ${activeTab === t.key ? "active" : ""}" onclick="setSkillTab('${needKey}','${t.key}')">${t.label}</button>`).join("")}
+      </div>
+      ${bodyHtml}
+      <div class="skill-stats">💼 滿足 <b>${active.matchCompany}%</b> 公司要求　📋 <b>${active.matchPeers}%</b> 競爭者擁有此技能</div>
+    </div>`;
+}
+
+function toggleActionItem(id, title, note) {
+  const idx = state.actionPlan.items.findIndex(i => i.id === id);
+  const adding = idx < 0;
+  if (!adding) state.actionPlan.items.splice(idx, 1);
+  else state.actionPlan.items.push({ id, title, note });
+  renderTool();
+  renderPlanBadge();
+  if (document.getElementById("planOverlay").classList.contains("open")) renderPlanPanelBody();
+  if (adding) showToast(`✅ 已加入清單（共 ${state.actionPlan.items.length} 項），點擊右上角 🎯 查看`);
+}
+
+function toggleActionComplete(id) {
+  state.actionPlan.completed[id] = !state.actionPlan.completed[id];
+  renderPlanPanelBody();
+}
+
+function setPlanStatusFilter(v) {
+  state.planStatusFilter = v;
+  renderPlanPanelBody();
+}
+
+function deleteCheckedItems() {
+  const plan = state.actionPlan;
+  plan.items = plan.items.filter(it => !plan.completed[it.id]);
+  renderPlanPanelBody();
+  renderPlanBadge();
+  renderTool();
+}
+
+let toastTimer = null;
+function showToast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 2400);
+}
+
+function renderPlanBadge() {
+  const badge = document.getElementById("navPlanBadge");
+  const count = state.actionPlan.items.length;
+  badge.textContent = count;
+  badge.hidden = count === 0;
+}
+
+function openPlanPanel() {
+  document.getElementById("planOverlay").classList.add("open");
+  renderPlanPanelBody();
+}
+function closePlanPanel() {
+  document.getElementById("planOverlay").classList.remove("open");
+}
+
+function renderPlanPanelBody() {
+  const el = document.getElementById("planPanelBody");
+  const plan = state.actionPlan;
+
+  if (!plan.items.length) {
+    el.innerHTML = `<div class="search-hint">還沒有加入任何項目。到「必備技能」缺口卡片、職務推薦卡或求職服務卡，點擊「+ 加入清單」開始規劃你的職涯行動清單吧！</div>`;
+    return;
+  }
+
+  const filter = state.planStatusFilter || "全部";
+  const filtered = plan.items.filter(it => {
+    if (filter === "已執行") return !!plan.completed[it.id];
+    if (filter === "未完成") return !plan.completed[it.id];
+    return true;
+  });
+  const total = plan.items.length;
+  const doneCount = plan.items.filter(i => plan.completed[i.id]).length;
+  const checkedCount = doneCount;
+  const pct = total ? Math.round((doneCount / total) * 100) : 0;
+
+  const filterRow = `
+    <div class="plan-filter-row">
+      <select class="native-select" onchange="setPlanStatusFilter(this.value)">
+        ${["全部", "未完成", "已執行"].map(f => `<option value="${f}" ${filter === f ? "selected" : ""}>${f}</option>`).join("")}
+      </select>
+      <button type="button" class="plan-delete-checked-btn" ${checkedCount ? "" : "disabled"} onclick="deleteCheckedItems()">刪除已勾選（${checkedCount}）</button>
+    </div>`;
+
+  const checklist = filtered.length ? filtered.map(it => `
+    <label class="plan-checklist-item ${plan.completed[it.id] ? "done" : ""}">
+      <input type="checkbox" ${plan.completed[it.id] ? "checked" : ""} onchange="toggleActionComplete('${it.id}')" />
+      <span class="plan-item-text">${it.title}${it.note ? `（${it.note}）` : ""}</span>
+    </label>`).join("") : `<div class="empty-note">這個篩選條件下沒有項目</div>`;
+
+  el.innerHTML = `
+    <div class="plan-card" style="margin-top:0;border:none;padding:0;">
+      <div class="plan-progress-track"><div class="plan-progress-fill" style="width:${pct}%"></div></div>
+      <div class="plan-progress-label">完成進度 ${doneCount}/${total}（${pct}%）</div>
+      ${filterRow}
+      ${checklist}
+    </div>`;
+}
+
+function renderSecondaryList(block) {
+  if (!block) return "";
+  const cards = block.items.map(it => `
+    <div class="job-carousel-card static">
+      <span class="job-carousel-name">${it.name}</span><span class="job-carousel-salary">${it.salary}</span>
+    </div>`).join("");
+  return `
+    <div class="secondary-block">
+      <div class="secondary-heading">${block.heading}</div>
+      <div class="job-carousel-row">${cards}</div>
+    </div>`;
+}
+
+function renderSimilarJobsTable(block) {
+  if (!block) return "";
+  const rows = block.items.map(it => `
+    <tr><td>${it.name}</td><td class="salary">${it.salary}</td></tr>`).join("");
+  return `
+    <div class="secondary-block">
+      <div class="secondary-heading">${block.heading}</div>
+      <table class="similar-jobs-table">${rows}</table>
+    </div>`;
+}
+
+function renderTraitCards(items) {
+  const cards = items.map(it => {
+    const added = state.actionPlan.items.some(i => i.id === it.name);
+    return `
+    <div class="trait-card">
+      <span class="trait-fit">${it.fit}</span><span class="trait-name-text">${it.name}</span>
+      <div class="trait-salary-row">💰 月薪中位數 ${it.salary}${it.trend ? ` <span class="trend">${it.trend}</span>` : ""}</div>
+      <div class="trait-desc-label">工作中會做什麼？</div>
+      <div class="trait-desc-text">${it.desc}</div>
+      <div class="trait-tools">你可能會接觸：${it.tools}</div>
+      <div class="trait-attrs">${it.traits.map(t => `
+        <div class="trait-attr">
+          <div class="trait-attr-name">${t.name}</div>
+          <div class="trait-dots">${"●".repeat(t.rating)}${"○".repeat(3 - t.rating)}</div>
+        </div>`).join("")}</div>
+      <div class="trait-prompt">探索重點：${it.prompt}</div>
+      <span class="trait-jobs">工作機會 (${it.jobs})</span>
+      <button type="button" class="plan-add-btn ${added ? "added" : ""}" onclick="toggleActionItem('${it.name}', '${it.name}', '列入深入了解清單')">${added ? "✓ 已加入" : "+ 加入清單"}</button>
+    </div>`;
+  }).join("");
+  return `
+    <div class="secondary-block">
+      <div class="secondary-heading">依據你的性格，這些職業也適合你</div>
+      <div class="trait-carousel-row">${cards}</div>
+    </div>`;
+}
+
+function renderToolForNeed(key) {
+  const d = DATA[key].tool;
+
+  if (key === "explore") {
+    const t = d.test;
+    const ts = state.exploreTest;
+
+    if (ts.taken) {
+      return `
+        <div class="tool-card">
+          <div class="personality-tag">🧬 測驗結果：你是「${ts.personalityType}」人才</div>
+          ${renderTraitCards(d.traitCards)}
+          ${renderSecondaryList({ heading: "其他熱門職務方向", items: d.candidates })}
+          <button type="button" class="test-skip-link" onclick="resetExplore()">重新測驗</button>
+        </div>`;
+    }
+
+    if (ts.skipped) {
+      return `
+        <div class="tool-card">
+          <div class="nudge-banner">
+            <span>📋 完成職場性格測驗，獲得更準確的職務推薦</span>
+            <button type="button" onclick="goToTest()">前往測驗</button>
+          </div>
+          ${renderSecondaryList({ heading: "熱門職務方向", items: d.candidates })}
+        </div>`;
+    }
+
+    return `
+      <div class="tool-card">
+        <div class="job-label" style="margin-bottom:4px;">${t.intro}</div>
+        <div class="test-gate-text">${t.introSub}</div>
+        <button class="tool-cta" onclick="goToTest()">${t.ctaText}</button>
+        <button type="button" class="test-skip-link" onclick="skipTest()">${t.skipText}</button>
+      </div>`;
+  }
+
+  if (key === "jobsearch") {
+    return `
+      <div class="tool-card">
+        <div class="job-label" style="margin-bottom:10px;">求職衝刺期，優先用這些工具加快腳步</div>
+        <div class="jobsearch-carousel-row">
+          ${d.giverTools.map(tool => {
+            const added = state.actionPlan.items.some(i => i.id === tool.title);
+            return `
+            <div class="jobsearch-tool-card">
+              <span class="jobsearch-tool-icon">${tool.icon}</span>
+              <div class="jobsearch-tool-title">${tool.title}</div>
+              <div class="jobsearch-tool-desc">${tool.desc}</div>
+              <a class="jobsearch-tool-cta" href="${tool.url}" target="_blank" rel="noopener">${tool.cta}</a>
+              <button type="button" class="plan-add-btn ${added ? "added" : ""}" onclick="toggleActionItem('${tool.title}', '${tool.title}', '安排時間完成這項服務')">${added ? "✓ 已加入" : "+ 加入清單"}</button>
+            </div>`;
+          }).join("")}
+        </div>
+        <p style="font-size:11px;color:var(--sub);margin-top:10px;text-align:center;">服務由 104 Giver 職涯顧問提供</p>
+      </div>`;
+  }
+
+  if (d.candidates) {
+    const jobIndex = key in state.jobIndexByNeed ? state.jobIndexByNeed[key] : null;
+    const ctaHtml = jobIndex !== null
+      ? `<a class="tool-cta ${d.ctaGhost ? "ghost" : ""}" href="${SKILL_GAP_URL}" target="_blank" rel="noopener">${d.ctaText}</a>`
+      : `<button type="button" class="tool-cta disabled" disabled title="請先選擇目標職務">${d.ctaText}</button>`;
+    return `
+      <div class="tool-card">
+        ${buildTargetSelector(key, d)}
+        ${renderSimilarJobsTable(d.similarJobs)}
+        ${ctaHtml}
+      </div>`;
+  }
+
+  if (!d.currentJobOptions) {
+    return `
+      <div class="tool-card">
+        <button class="tool-cta ${d.ctaGhost ? "ghost" : ""}">${d.ctaText}</button>
+      </div>`;
+  }
+
+  const names = currentJobNames(d);
+  const picked = state.baseJobByNeed[key] || names[0];
+  const active = d.currentJobOptions.find(o => o.name === picked);
+  return `
+    <div class="tool-card">
+      ${key === "growth" ? renderSalaryPRCard(active) : ""}
+      ${renderSkillGapCard(key, active)}
+      ${renderSimilarJobsTable(d.similarJobs)}
+      <a class="tool-cta ${d.ctaGhost ? "ghost" : ""}" href="${GROWTH_SKILL_GAP_URL}" target="_blank" rel="noopener">${d.ctaText}</a>
+    </div>`;
+}
+
+function renderTool() {
+  document.getElementById("toolArea").innerHTML = renderToolForNeed(state.need);
+}
+
+function selectJob(needKey, i) { state.jobIndexByNeed[needKey] = i; state.skillTabByNeed[needKey] = "missing"; renderAll(); }
+function selectTargetFromDropdown(needKey, v) { state.jobIndexByNeed[needKey] = v === "" ? null : parseInt(v, 10); state.skillTabByNeed[needKey] = "missing"; renderAll(); }
+function selectBaseJob(needKey, v) { state.baseJobByNeed[needKey] = v; renderTool(); }
+function setSkillTab(needKey, key) { state.skillTabByNeed[needKey] = key; renderTool(); }
+function skipTest() { state.exploreTest.skipped = true; renderAll(); }
+function goToTest() {
+  const types = DATA.explore.tool.personalityTypes;
+  state.exploreTest.personalityType = types[Math.floor(Math.random() * types.length)];
+  state.exploreTest.taken = true;
+  state.exploreTest.skipped = false;
+  renderAll();
+}
+function resetExplore() { state.exploreTest = { taken: false, skipped: false, personalityType: null }; renderAll(); }
+
+function renderFeed(containerId, items, linkUrl) {
+  const el = document.getElementById(containerId);
+  if (!items.length) {
+    el.innerHTML = `<div class="empty-note">這個分類暫時沒有符合的內容，換個標籤看看吧</div>`;
+    return;
+  }
+  const badge = `<span class="feed-badge on">為你推薦</span>`;
+  el.innerHTML = items.map(it => `
+    <a class="feed-card" href="${linkUrl}" target="_blank" rel="noopener">
+      <div class="tag-row">
+        <span class="tag ${it.tag}">${it.tagLabel}</span>
+        <span class="feed-source">${it.source}</span>
+        ${badge}
+      </div>
+      <div class="feed-title">${it.title}</div>
+      <div class="feed-desc">${it.desc}</div>
+      <div class="feed-actions"><span>👏 拍手</span><span>🔖 收藏</span><span>↗ 分享</span></div>
+    </a>`).join("");
+}
+
+function buildInsertCard(it) {
+  const ctaText = it.tag === "course" ? "立即上課" : it.tag === "cert" ? "查看證照資訊" : "立即測驗";
+  const ctaClass = it.tag === "quiz" ? "blue" : it.tag === "cert" ? "gold" : "";
+  return `
+    <div class="feed-card">
+      <div class="tag-row">
+        <span class="tag ${it.tag}">${it.tagLabel}</span>
+        <span class="feed-source">${it.source}</span>
+      </div>
+      <div class="feed-title">${it.title}</div>
+      <div class="feed-desc">${it.desc}</div>
+      <span class="feed-cta ${ctaClass}">${ctaText}</span>
+    </div>`;
+}
+
+function buildMixedInserts(data) {
+  const quizzes = data.quizzes || [];
+  const certs = data.certificates || [];
+  const pool = [];
+  const max = Math.max(quizzes.length, certs.length);
+  for (let i = 0; i < max; i++) {
+    if (quizzes[i]) pool.push(quizzes[i]);
+    if (certs[i]) pool.push(certs[i]);
+  }
+  return pool;
+}
+
+function interleaveWithInserts(items, inserts) {
+  const result = [];
+  let insertIdx = 0;
+  let nextInsertAt = 3 + Math.floor(Math.random() * 3);
+  items.forEach((it, i) => {
+    result.push({ type: "item", data: it });
+    if ((i + 1) === nextInsertAt && insertIdx < inserts.length) {
+      result.push({ type: "insert", data: inserts[insertIdx] });
+      insertIdx++;
+      nextInsertAt = i + 1 + 3 + Math.floor(Math.random() * 3);
+    }
+  });
+  return result;
+}
+
+function renderFeedWithInserts(containerId, items, linkUrl, inserts) {
+  const el = document.getElementById(containerId);
+  if (!items.length) {
+    el.innerHTML = `<div class="empty-note">這個分類暫時沒有符合的內容，換個標籤看看吧</div>`;
+    return;
+  }
+  const badge = `<span class="feed-badge on">為你推薦</span>`;
+  const combined = interleaveWithInserts(items, inserts);
+  el.innerHTML = combined.map(entry => {
+    if (entry.type === "insert") return buildInsertCard(entry.data);
+    const it = entry.data;
+    return `
+    <a class="feed-card" href="${linkUrl}" target="_blank" rel="noopener">
+      <div class="tag-row">
+        <span class="tag ${it.tag}">${it.tagLabel}</span>
+        <span class="feed-source">${it.source}</span>
+        ${badge}
+      </div>
+      <div class="feed-title">${it.title}</div>
+      <div class="feed-desc">${it.desc}</div>
+      <div class="feed-actions"><span>👏 拍手</span><span>🔖 收藏</span><span>↗ 分享</span></div>
+    </a>`;
+  }).join("") + `<div class="feed-end-note">— 已經到底，這是目前的全部內容 —</div>`;
+}
+
+function renderFilterRow(containerId, tags, active, setterName) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = tags.map(t =>
+    `<button type="button" class="filter-chip ${t === active ? "active" : ""}" onclick="${setterName}('${t}')">${t}</button>`
+  ).join("");
+}
+
+function setArticleTag(t) { state.articleTag = t; renderContentHub(); anchorContentHub(); }
+function setCommunityTag(t) { state.communityTag = t; renderContentHub(); anchorContentHub(); }
+function setClassroomTag(t) { state.classroomTag = t; renderContentHub(); anchorContentHub(); }
+
+function anchorContentHub() {
+  const hub = document.getElementById("contentHub");
+  const rect = hub.getBoundingClientRect();
+  if (rect.top < 0) hub.scrollIntoView({ block: "start" });
+}
+
+function toggleFollowClassroom(e, name) {
+  e.preventDefault();
+  e.stopPropagation();
+  if (state.followedClassrooms.has(name)) state.followedClassrooms.delete(name);
+  else state.followedClassrooms.add(name);
+  renderContentHub();
+}
+
+function renderClassroomFeed() {
+  const data = currentData();
+  const items = state.classroomTag === "已關注"
+    ? data.classrooms.filter(c => state.followedClassrooms.has(c.classroomName))
+    : data.classrooms;
+  const el = document.getElementById("contentFeed");
+  if (!items.length) {
+    el.innerHTML = `<div class="empty-note">還沒有關注任何共學教室，點擊貼文上的「+ 關注」開始追蹤吧</div>`;
+    return;
+  }
+  const badge = `<span class="feed-badge on">為你推薦</span>`;
+  const combined = interleaveWithInserts(items, buildMixedInserts(data));
+  el.innerHTML = combined.map(entry => {
+    if (entry.type === "insert") return buildInsertCard(entry.data);
+    const c = entry.data;
+    const followed = state.followedClassrooms.has(c.classroomName);
+    const safeName = c.classroomName.replace(/'/g, "\\'");
+    return `
+    <a class="feed-card" href="https://nabi.104.com.tw/classroom" target="_blank" rel="noopener">
+      <div class="tag-row">
+        <span class="tag classroom">共學</span>
+        <span class="feed-source">${c.classroomName}</span>
+        ${badge}
+      </div>
+      <div class="feed-title">${c.title}</div>
+      <div class="feed-desc">${c.desc}</div>
+      <div class="feed-actions">
+        <span>👏 拍手</span><span>🔖 收藏</span>
+        <button type="button" class="classroom-follow-btn ${followed ? "followed" : ""}" onclick="toggleFollowClassroom(event,'${safeName}')">${followed ? "✓ 已關注" : "+ 關注"}</button>
+      </div>
+    </a>`;
+  }).join("") + `<div class="feed-end-note">— 已經到底，這是目前的全部內容 —</div>`;
+}
+
+const SECTION_LABELS = { articles: "職場力", community: "職場問答", classroom: "共學教室", aiZone: "AI專區", learning: "學習新知", talent: "人才社群" };
+const L1_ICONS = { articles: "📰", community: "💬", classroom: "🎓", aiZone: "🤖", learning: "📚", talent: "🌐" };
+const CONTENT_L1_KEYS = ["articles", "community", "classroom"];
+const SEE_MORE_LINKS = {
+  articles: "https://blog.104.com.tw/?utm_source=104&utm_medium=blackbar2&utm_campaign=nabi",
+  community: "https://giver.104.com.tw/questionList/0?orderType=recommend",
+  classroom: "https://nabi.104.com.tw/classroom",
+};
+
+function selectL1(key) {
+  state.activeL1 = key;
+  renderContentHub();
+  anchorContentHub();
+}
+
+function toggleSectionVisible(key) {
+  state.sectionVisible[key] = !state.sectionVisible[key];
+  renderOrderModal();
+  renderContentHub();
+}
+
+function renderContentHub() {
+  const feedEl = document.getElementById("contentFeed");
+  feedEl.classList.add("feed-swapping");
+  requestAnimationFrame(() => requestAnimationFrame(() => feedEl.classList.remove("feed-swapping")));
+
+  const data = currentData();
+  const visibleKeys = state.sectionOrder.filter(key => state.sectionVisible[key]);
+  const row = document.getElementById("l1TagRow");
+
+  if (!visibleKeys.length) {
+    row.innerHTML = "";
+    document.getElementById("seeMoreLink").style.display = "none";
+    document.getElementById("contentIntro").textContent = "所有內容類型都已隱藏，點擊上方「⚙️ 自訂排序」重新開啟";
+    document.getElementById("l2Filter").innerHTML = "";
+    document.getElementById("contentFeed").innerHTML = "";
+    return;
+  }
+  if (!visibleKeys.includes(state.activeL1)) state.activeL1 = visibleKeys[0];
+
+  row.innerHTML = visibleKeys.map(key => `
+    <button type="button" class="filter-chip ${state.activeL1 === key ? "active" : ""}" onclick="selectL1('${key}')">${L1_ICONS[key]} ${SECTION_LABELS[key]}</button>
+  `).join("");
+
+  const hasData = CONTENT_L1_KEYS.includes(state.activeL1);
+  const seeMoreEl = document.getElementById("seeMoreLink");
+  seeMoreEl.style.display = hasData ? "" : "none";
+  if (hasData) seeMoreEl.href = SEE_MORE_LINKS[state.activeL1];
+
+  if (!hasData) {
+    document.getElementById("contentIntro").textContent = `「${SECTION_LABELS[state.activeL1]}」即將推出，敬請期待`;
+    document.getElementById("l2Filter").innerHTML = "";
+    document.getElementById("contentFeed").innerHTML = "";
+    return;
+  }
+
+  document.getElementById("contentIntro").textContent = INTRO[state.need][state.activeL1];
+
+  if (state.activeL1 === "articles") {
+    renderFilterRow("l2Filter", ARTICLE_TAGS, state.articleTag, "setArticleTag");
+    const items = state.articleTag === "推薦" ? data.articles : data.articles.filter(a => a.category === state.articleTag);
+    renderFeedWithInserts("contentFeed", items, SEE_MORE_LINKS.articles, buildMixedInserts(data));
+  } else if (state.activeL1 === "community") {
+    renderFilterRow("l2Filter", COMMUNITY_TAGS, state.communityTag, "setCommunityTag");
+    const items = state.communityTag === "推薦" ? data.community : data.community.filter(c => c.tagLabel === state.communityTag);
+    renderFeedWithInserts("contentFeed", items, SEE_MORE_LINKS.community, buildMixedInserts(data));
+  } else {
+    renderFilterRow("l2Filter", CLASSROOM_TAGS, state.classroomTag, "setClassroomTag");
+    renderClassroomFeed();
+  }
+}
+
+function applySectionOrder() {
+  renderContentHub();
+}
+
+function openOrderModal() {
+  document.getElementById("orderOverlay").classList.add("open");
+  renderOrderModal();
+}
+function closeOrderModal() {
+  document.getElementById("orderOverlay").classList.remove("open");
+}
+
+function renderOrderModal() {
+  const body = document.getElementById("orderModalBody");
+  const draggableHtml = state.sectionOrder.map(key => {
+    const visible = state.sectionVisible[key];
+    return `
+    <div class="order-row ${visible ? "" : "hidden-section"}" data-key="${key}">
+      <span class="order-drag-handle" onpointerdown="startDragSection(event,'${key}')">☰</span>
+      <span class="order-row-label">${L1_ICONS[key]} ${SECTION_LABELS[key]}</span>
+      <button type="button" class="order-visibility-btn ${visible ? "on" : "off"}" onclick="toggleSectionVisible('${key}')">${visible ? "👁 顯示中" : "🚫 已隱藏"}</button>
+    </div>`;
+  }).join("");
+  body.innerHTML = `
+    <p class="search-scope-hint" style="padding:0 0 10px;">按住 ☰ 拖曳調整內容類型的預設顯示順序（排第一的會是預設開啟的頁籤），點擊右側按鈕可顯示／隱藏該類型；AI專區／學習新知／人才社群目前預設隱藏，開啟後會在內容中心出現「即將推出」頁籤。</p>
+    <div id="orderDragList">${draggableHtml}</div>
+    <button type="button" class="tool-cta" style="margin-top:16px;" onclick="closeOrderModal()">完成</button>`;
+}
+
+let dragState = null;
+function startDragSection(e, key) {
+  e.preventDefault();
+  const list = document.getElementById("orderDragList");
+  const draggedEl = Array.from(list.children).find(r => r.dataset.key === key);
+  if (!draggedEl) return;
+  dragState = { draggedEl };
+  draggedEl.classList.add("dragging");
+  document.onpointermove = onDragSectionMove;
+  document.onpointerup = endDragSection;
+}
+function onDragSectionMove(e) {
+  if (!dragState) return;
+  const list = document.getElementById("orderDragList");
+  const rows = Array.from(list.children).filter(r => r !== dragState.draggedEl);
+  const y = e.clientY;
+  let target = null;
+  for (const row of rows) {
+    const rect = row.getBoundingClientRect();
+    if (y < rect.top + rect.height / 2) { target = row; break; }
+  }
+  if (target) list.insertBefore(dragState.draggedEl, target);
+  else list.appendChild(dragState.draggedEl);
+}
+function endDragSection() {
+  if (!dragState) return;
+  dragState.draggedEl.classList.remove("dragging");
+  document.onpointermove = null;
+  document.onpointerup = null;
+  const list = document.getElementById("orderDragList");
+  state.sectionOrder = Array.from(list.children).map(r => r.dataset.key);
+  applySectionOrder();
+  dragState = null;
+}
+
+function buildSearchIndex() {
+  const items = [];
+  Object.keys(DATA).filter(k => k !== "default").forEach(needKey => {
+    const d = DATA[needKey];
+    d.articles.forEach(it => items.push(it));
+    d.community.forEach(it => items.push(it));
+    d.courses.forEach(it => items.push(it));
+    d.quizzes.forEach(it => items.push(it));
+    (d.certificates || []).forEach(it => items.push(it));
+    d.classrooms.forEach(it => items.push(it));
+  });
+  return items;
+}
+const SEARCH_INDEX = buildSearchIndex();
+
+function openSearch() {
+  document.getElementById("searchOverlay").classList.add("open");
+  const input = document.getElementById("searchInput");
+  input.value = "";
+  handleSearchInput("");
+  setTimeout(() => input.focus(), 50);
+}
+function closeSearch() {
+  document.getElementById("searchOverlay").classList.remove("open");
+}
+
+function handleSearchInput(query) {
+  const el = document.getElementById("searchResults");
+  const q = query.trim().toLowerCase();
+  if (!q) {
+    el.innerHTML = `<div class="search-hint">輸入關鍵字開始搜尋</div>`;
+    return;
+  }
+  const matches = SEARCH_INDEX.filter(it =>
+    it.title.toLowerCase().includes(q) || (it.desc && it.desc.toLowerCase().includes(q))
+  );
+  if (!matches.length) {
+    el.innerHTML = `<div class="search-hint">找不到符合「${query}」的內容，換個關鍵字試試</div>`;
+    return;
+  }
+  el.innerHTML = `<div class="search-result-count">共 ${matches.length} 筆結果</div>` +
+    matches.map(it => `
+      <button type="button" class="search-result-item" onclick="closeSearch()">
+        <span class="tag ${it.tag}">${it.tagLabel}</span>
+        <span class="info">
+          <div class="title">${it.title}</div>
+          <div class="source">${it.source}</div>
+        </span>
+      </button>`).join("");
+}
+
+function renderAll() {
+  renderNeeds();
+  renderPersonalizeBanner();
+  renderTool();
+  renderPlanBadge();
+  renderContentHub();
+}
+
+renderAll();
+</script>
+</body>
+</html>
